@@ -14,6 +14,7 @@ import (
 //bb := true  		// X 函数外面定义不能使用 ":=" 的形式
 //var bb = true
 // 同时声明
+// 同时声明
 var (
 	aa = 3
 	ss = "kkk"
@@ -56,10 +57,13 @@ func euler() {
 // 强类型转换
 func triangle()  {
 	var a, b int = 3, 4
+	fmt.Println(calcTrangle(a, b))
+}
+
+func calcTrangle(a, b int) int  {
 	var c int
 	c = int(math.Sqrt(float64(a * a + b * b)))
-	fmt.Println(c)
-
+	return c
 }
 
 // 常量

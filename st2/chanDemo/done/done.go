@@ -2,65 +2,55 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"sync"
 )
 
-func worker(id int, c chan int)  {
-	//for {
-	//	n, ok := <-c
-	//	if !ok {
-	//		break
-	//	}
-	//	fmt.Printf("worker %d received %d\n", id, n)
-	//}
-	for n := range c {
+func doWork(id int, c chan int, w worker)  {
+	for n := range w.in {
 		fmt.Printf("worker %d received %d\n", id, n)
+		w.done()
 	}
 }
 
-func createWorker(id int) chan <- int{
-	c := make(chan int)
-	go worker(id, c)
-	return c
+type worker struct {
+	in chan int
+	done func()
+}
+
+func createWorker(id int, wg *sync.WaitGroup) worker {
+	w := worker{
+		in: make(chan  int),
+		done: func() {
+			wg.Done()
+		},
+	}
+	go doWork(id, w.in, w)
+	return w
 }
 
 func chanDemo()  {
-	var channels [10]chan <- int
-	for i := 0; i < 10; i++ {
-		channels[i] = createWorker(i)
-	}
-	for i := 0; i < 10; i++ {
-		channels[i] <- 'a' + i
-	}
-	for i := 0; i < 10; i++ {
-		channels[i] <- 'A' + i
-	}
-	time.Sleep(time.Millisecond)
-}
+	var wg sync.WaitGroup
 
-func bufferedChannel()  {
-	c := make(chan int, 3)
-	go worker(0, c)
-	c <- 'a'
-	c <- 'b'
-	c <- 'c'
-	c <- 'd'
-	time.Sleep(time.Millisecond)
-}
+	var workers [10]worker
+	for i := 0; i < 10; i++ {
+		workers[i] = createWorker(i,&wg)
+	}
 
-func channelClose()  {
-	c := make(chan int)
-	go worker(0, c)
-	c <- 'a'
-	c <- 'b'
-	c <- 'c'
-	c <- 'd'
-	close(c)
-	time.Sleep(time.Millisecond)
-}
+	wg.Add(20)
+	for i, worker := range workers{
+		worker.in <- 'a' + i
+	}
+	for i, worker := range workers{
+		worker.in <- 'A' + i
+	}
+	wg.Wait()
 
+	// wait for all of them
+	//for _, worker := range workers {
+	//	<-worker.done
+	//	<-worker.done
+	//}
+}
 func main() {
-	//chanDemo()
-	//bufferedChannel()
-	channelClose()
+	chanDemo()
 }

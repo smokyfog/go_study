@@ -1,6 +1,6 @@
 package main
 
-import "tree"
+import "yq.com/go_study/st1/tree"
 
 func main()  {
 	var root tree.TreeNode
